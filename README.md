@@ -188,11 +188,10 @@ docker-compose up --build
 
 - [x] Repo initialized
 - [x] Project structure defined
-- [ ] Phase 1 — Agent core + FastAPI
+- [x] Phase 1 — Agent core + FastAPI
 - [ ] Phase 2 — Service plugins
 - [ ] Phase 3 — React frontend
 - [ ] Phase 4 — Docker + AWS + CI/CD
-
 ---
 
 ## Why This Matters
