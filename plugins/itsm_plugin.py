@@ -12,21 +12,6 @@ MOCK_IT_DATA = {
 MOCK_TICKETS = {}
 
 
-class ITSMPlugin(BasePlugin):
-    """
-    IT Service Management plugin.
-    Handles IT tickets, password resets, and software requests.
-    """
-
-    @property
-    def name(self) -> str:
-        return "itsm"
-
-    @property
-    def description(self) -> str:
-        return "Handles IT requests — support tickets, password resets, and software access"
-
-
 @tool
 def create_ticket(employee_id: str, issue: str, priority: str) -> str:
     """
@@ -46,10 +31,9 @@ def create_ticket(employee_id: str, issue: str, priority: str) -> str:
             f"Must be one of: {', '.join(allowed_priorities)}"
         )
 
-    # Keep generating until we get a unique ID
+    ticket_id = f"TKT-{random.randint(1000, 9999)}"
+    while ticket_id in MOCK_TICKETS:
         ticket_id = f"TKT-{random.randint(1000, 9999)}"
-        while ticket_id in MOCK_TICKETS:
-            ticket_id = f"TKT-{random.randint(1000, 9999)}"
 
     MOCK_TICKETS[ticket_id] = {
         "employee_id": employee_id,
@@ -69,8 +53,9 @@ def create_ticket(employee_id: str, issue: str, priority: str) -> str:
         f"Issue: {issue}. "
         f"Priority: {priority}. "
         f"Status: Open. "
-        f"Expected response time: {'2 hours' if priority == 'high' else '1 business day'}."
+        f"Expected response time: {'2 hours' if priority.lower() == 'high' else '1 business day'}."
     )
+
 
 @tool
 def get_ticket_status(ticket_id: str) -> str:
@@ -92,6 +77,7 @@ def get_ticket_status(ticket_id: str) -> str:
         f"Estimated resolution: {ticket['estimated_resolution']}."
     )
 
+
 @tool
 def reset_password(employee_id: str, system: str) -> str:
     """
@@ -103,18 +89,13 @@ def reset_password(employee_id: str, system: str) -> str:
     if not employee_data:
         return f"No employee found with ID {employee_id}"
 
-    if system not in employee_data["systems_access"]:
-
-        systems_lower = [s.lower() for s in employee_data["systems_access"]]
-
-        if system.lower() not in systems_lower:
-            return (
-                f"Employee does not have access to {system}. "
-                f"Current systems: {', '.join(employee_data['systems_access'])}. "
-                f"Request access through your IT administrator."
-            )
-
-    reset_code = f"RESET-{random.randint(100000, 999999)}"
+    systems_lower = [s.lower() for s in employee_data["systems_access"]]
+    if system.lower() not in systems_lower:
+        return (
+            f"Employee does not have access to {system}. "
+            f"Current systems: {', '.join(employee_data['systems_access'])}. "
+            f"Request access through your IT administrator."
+        )
 
     return (
         f"Password reset initiated for {system}. "
@@ -122,6 +103,7 @@ def reset_password(employee_id: str, system: str) -> str:
         f"This code expires in 30 minutes. "
         f"You will be prompted to set a new password on first login."
     )
+
 
 @tool
 def request_software(employee_id: str, software_name: str, justification: str) -> str:
@@ -134,7 +116,6 @@ def request_software(employee_id: str, software_name: str, justification: str) -
     if not employee_data:
         return f"No employee found with ID {employee_id}"
 
-    # Check if employee already has access
     systems_lower = [s.lower() for s in employee_data["systems_access"]]
     if software_name.lower() in systems_lower:
         return (
@@ -142,12 +123,10 @@ def request_software(employee_id: str, software_name: str, justification: str) -
             f"Current systems: {', '.join(employee_data['systems_access'])}."
         )
 
-    # Generate request ID
     request_id = f"REQ-{random.randint(1000, 9999)}"
     while request_id in MOCK_TICKETS:
         request_id = f"REQ-{random.randint(1000, 9999)}"
 
-    # Store the request
     MOCK_TICKETS[request_id] = {
         "employee_id": employee_id,
         "type": "software_request",
@@ -168,10 +147,22 @@ def request_software(employee_id: str, software_name: str, justification: str) -
         f"Estimated provisioning time: 3-5 business days."
     )
 
-def get_tools(self) -> list[BaseTool]:
-        """
-        Returns all ITSM tools for the agent.
-        """
+
+class ITSMPlugin(BasePlugin):
+    """
+    IT Service Management plugin.
+    Handles IT tickets, password resets, and software requests.
+    """
+
+    @property
+    def name(self) -> str:
+        return "itsm"
+
+    @property
+    def description(self) -> str:
+        return "Handles IT requests — support tickets, password resets, and software access"
+
+    def get_tools(self) -> list[BaseTool]:
         return [
             create_ticket,
             get_ticket_status,
