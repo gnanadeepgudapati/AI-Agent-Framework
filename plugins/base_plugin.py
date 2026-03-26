@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from langchain_core.tools import BaseTool
 
 class BasePlugin(ABC):
-    """"
+    """
           Abstract base class for all service plugins.
     Every plugin (HRIS, ITSM, Facilities) must inherit from this.
 
